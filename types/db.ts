@@ -57,6 +57,7 @@ export interface EssenceBlock {
   body: string;
   updated_by: string | null;
   created_by: string | null; // автор блока, null у стартовых блоков
+  main_version_id: string | null; // главная формулировка (запись kind = version), null = исходный текст
   created_at: string;
   updated_at: string;
 }

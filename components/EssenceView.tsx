@@ -8,15 +8,25 @@ import { ErrorMessage, Loading } from "@/components/StateMessage";
 
 export default function EssenceView() {
   const { name } = useName();
-  const { blocks, commentsByBlock, commentsError, loading, error, saveBody, addBlock, addComment } =
-    useEssence(name);
+  const {
+    blocks,
+    commentsByBlock,
+    commentsError,
+    loading,
+    error,
+    saveBody,
+    addBlock,
+    addComment,
+    setMain,
+    removeBlock,
+  } = useEssence(name);
 
   return (
     <main className="page">
       <h2 className="page-title">Суть идеи</h2>
       <p className="sub">
-        Открой блок, чтобы прочитать целиком, поправить текст, оставить комментарий или предложить
-        следующую версию. Новый блок можно добавить внизу.
+        Открой блок, чтобы прочитать целиком, добавить формулировку или комментарий и выбрать
+        главную формулировку.
       </p>
       {loading && <Loading />}
       {error && <ErrorMessage text={error} />}
@@ -31,10 +41,12 @@ export default function EssenceView() {
             commentsEnabled={!commentsError}
             onSave={saveBody}
             onAddComment={addComment}
+            onSetMain={(id, v) => void setMain(id, v)}
+            onDelete={removeBlock}
           />
         ))}
+        {!loading && !error && <NewBlockForm onAdd={addBlock} />}
       </div>
-      {!loading && !error && <NewBlockForm onAdd={addBlock} />}
     </main>
   );
 }

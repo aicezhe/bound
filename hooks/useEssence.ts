@@ -144,6 +144,7 @@ export function useEssence(name: string | null) {
         body,
         updated_by: name,
         created_by: name,
+        main_version_id: null,
         created_at: now,
         updated_at: now,
       };
@@ -194,7 +195,47 @@ export function useEssence(name: string | null) {
     [name, notify],
   );
 
+  // null = главной снова становится исходный текст блока
+  const setMain = useCallback(
+    async (blockId: string, versionId: string | null) => {
+      const prev = blocks.find((b) => b.id === blockId)?.main_version_id ?? null;
+      const apply = (v: string | null) =>
+        setBlocks((list) => list.map((b) => (b.id === blockId ? { ...b, main_version_id: v } : b)));
+      apply(versionId);
+      const { error } = await supabase
+        .from("essence_blocks")
+        .update({ main_version_id: versionId })
+        .eq("id", blockId);
+      if (error) {
+        apply(prev);
+        notify("Не удалось выбрать главную формулировку");
+      }
+    },
+    [blocks, notify],
+  );
+
+  const removeBlock = useCallback(
+    async (blockId: string): Promise<boolean> => {
+      const block = blocks.find((b) => b.id === blockId);
+      if (!block) return false;
+      const removedComments = comments.filter((c) => c.block_id === blockId);
+      setBlocks((list) => list.filter((b) => b.id !== blockId));
+      setComments((list) => list.filter((c) => c.block_id !== blockId));
+      const { error } = await supabase.from("essence_blocks").delete().eq("id", blockId);
+      if (error) {
+        setBlocks((list) => [...list, block].sort(byPosition));
+        setComments((list) => [...list, ...removedComments].sort(byCreated));
+        notify("Не удалось удалить блок");
+        return false;
+      }
+      return true;
+    },
+    [blocks, comments, notify],
+  );
+
   return {
+    setMain,
+    removeBlock,
     blocks,
     commentsByBlock,
     commentsError,

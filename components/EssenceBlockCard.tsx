@@ -13,6 +13,8 @@ interface Props {
   commentsEnabled: boolean;
   onSave: (id: string, body: string) => Promise<boolean>;
   onAddComment: (blockId: string, kind: EssenceEntryKind, body: string) => Promise<boolean>;
+  onSetMain: (blockId: string, versionId: string | null) => void;
+  onDelete: (blockId: string) => Promise<boolean>;
 }
 
 function signature(b: EssenceBlock): string {
@@ -31,6 +33,8 @@ export default function EssenceBlockCard({
   commentsEnabled,
   onSave,
   onAddComment,
+  onSetMain,
+  onDelete,
 }: Props) {
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState(block.body);
@@ -79,6 +83,10 @@ export default function EssenceBlockCard({
     };
   }, [block.id]);
 
+  // на странице показываем главную формулировку, если выбрана
+  const main = comments.find((c) => c.id === block.main_version_id);
+  const shown = main ? main.body : draft;
+
   return (
     <>
       <button className="block block-card" aria-haspopup="dialog" onClick={() => setOpen(true)}>
@@ -88,7 +96,7 @@ export default function EssenceBlockCard({
             {commentsEnabled && comments.length > 0 ? `Записей: ${comments.length}` : ""}
           </span>
         </span>
-        <span className="block-preview">{draft}</span>
+        <span className="block-preview">{shown}</span>
         <span className="block-meta">{signature(block)}</span>
       </button>
       {open && (
@@ -99,6 +107,10 @@ export default function EssenceBlockCard({
           entries={comments}
           entriesEnabled={commentsEnabled}
           onAddEntry={(kind, body) => onAddComment(block.id, kind, body)}
+          onSetMain={(versionId) => onSetMain(block.id, versionId)}
+          onDelete={async () => {
+            if (await onDelete(block.id)) setOpen(false);
+          }}
           onClose={() => setOpen(false)}
         />
       )}
