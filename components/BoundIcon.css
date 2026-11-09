@@ -1,0 +1,61 @@
+/* Иконка Bound. Цвета: подставь имена своих переменных, если они отличаются.
+   Запасные значения (после запятой) работают, даже если переменных нет. */
+
+.bound-icon {
+  --_ring: var(--accent, #6b1a2a);
+  --_node: var(--pulse, #b3202f);
+  display: block;
+  overflow: visible;
+}
+
+.bound-icon__ring {
+  fill: none;
+  stroke: var(--_ring);
+  stroke-width: 1.2;
+  vector-effect: non-scaling-stroke; /* линия остаётся тонкой при росте кольца */
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.bound-icon__halo {
+  fill: var(--_node);
+  opacity: 0.16;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.bound-icon__node {
+  fill: var(--_node);
+}
+
+/* Покой: кольца разной величины и прозрачности */
+.bound-icon__ring--1 { transform: scale(0.4); opacity: 0.7; }
+.bound-icon__ring--2 { transform: scale(0.7); opacity: 0.45; }
+.bound-icon__ring--3 { transform: scale(1);   opacity: 0.25; }
+
+/* Анимация: плавная волна, цикл 3,6 с, кольца сдвинуты на треть цикла.
+   Отрицательные задержки: иконка сразу в середине цикла, без пустого старта. */
+@media (prefers-reduced-motion: no-preference) {
+  .bound-icon--animated .bound-icon__ring {
+    opacity: 0;
+    animation: bound-wave 3.6s cubic-bezier(0.22, 0.61, 0.36, 1) infinite;
+  }
+  .bound-icon--animated .bound-icon__ring--1 { transform: none; animation-delay: 0s; }
+  .bound-icon--animated .bound-icon__ring--2 { transform: none; animation-delay: -1.2s; }
+  .bound-icon--animated .bound-icon__ring--3 { transform: none; animation-delay: -2.4s; }
+
+  .bound-icon--animated .bound-icon__halo {
+    animation: bound-breathe 3.6s ease-in-out infinite;
+  }
+}
+
+@keyframes bound-wave {
+  0%   { transform: scale(0.1); opacity: 0; }
+  12%  { opacity: 0.9; }
+  100% { transform: scale(1);   opacity: 0; }
+}
+
+@keyframes bound-breathe {
+  0%, 100% { transform: scale(1);   opacity: 0.14; }
+  50%      { transform: scale(1.7); opacity: 0.3; }
+}
