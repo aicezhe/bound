@@ -1,8 +1,9 @@
-import { statusLabel, tagLabel } from "@/lib/labels";
+import { statusLabel } from "@/lib/labels";
 import type { IdeaWithVotes } from "@/types/db";
 
 interface Props {
   idea: IdeaWithVotes;
+  tagLabel: string;
   voted: boolean;
   onCycleStatus: () => void;
   onVote: () => void;
@@ -10,13 +11,21 @@ interface Props {
   onToTasks: () => void;
 }
 
-export default function IdeaCard({ idea, voted, onCycleStatus, onVote, onArchive, onToTasks }: Props) {
+export default function IdeaCard({
+  idea,
+  tagLabel,
+  voted,
+  onCycleStatus,
+  onVote,
+  onArchive,
+  onToTasks,
+}: Props) {
   return (
     <article className="idea">
       <h4>{idea.title}</h4>
       {idea.body && <p>{idea.body}</p>}
       <div className="meta">
-        <span className="tag">{tagLabel(idea.tag)}</span>
+        <span className="tag">{tagLabel}</span>
         <span className={`status ${idea.status}`}>{statusLabel(idea.status)}</span>
         <span className="tag">{idea.author_name}</span>
       </div>

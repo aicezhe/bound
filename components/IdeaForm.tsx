@@ -2,14 +2,15 @@
 
 import { useState, type FormEvent } from "react";
 import Select from "@/components/Select";
-import { TAGS } from "@/lib/labels";
 import type { IdeaTag } from "@/types/db";
 
 interface Props {
+  tags: { value: IdeaTag; label: string }[];
+  onAddTag?: (label: string) => Promise<IdeaTag | null>;
   onAdd: (title: string, tag: IdeaTag, body: string) => Promise<boolean>;
 }
 
-export default function IdeaForm({ onAdd }: Props) {
+export default function IdeaForm({ tags, onAddTag, onAdd }: Props) {
   const [title, setTitle] = useState("");
   const [tag, setTag] = useState<IdeaTag>("feature");
   const [body, setBody] = useState("");
@@ -33,7 +34,15 @@ export default function IdeaForm({ onAdd }: Props) {
         placeholder="Название идеи"
         aria-label="Название идеи"
       />
-      <Select value={tag} options={TAGS} onChange={setTag} ariaLabel="Тег" />
+      <Select
+        value={tag}
+        options={tags}
+        onChange={setTag}
+        ariaLabel="Вид идеи"
+        onCreate={onAddTag}
+        createLabel="Добавить вид"
+        createPlaceholder="Новый вид"
+      />
       <textarea
         value={body}
         onChange={(e) => setBody(e.target.value)}

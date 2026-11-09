@@ -1,5 +1,6 @@
 import type { IdeaStatus, IdeaTag, Priority, TaskStatus } from "@/types/db";
 
+// стартовые виды; полный список (со своими) приходит из таблицы idea_tags
 export const TAGS: { value: IdeaTag; label: string }[] = [
   { value: "feature", label: "Фича" },
   { value: "product", label: "Продукт" },
@@ -29,7 +30,6 @@ export const PRIORITIES: { value: Priority; label: string }[] = [
   { value: 2, label: "Высокий" },
 ];
 
-export const tagLabel = (t: IdeaTag) => TAGS.find((x) => x.value === t)?.label ?? t;
 export const statusLabel = (s: IdeaStatus) =>
   IDEA_STATUSES.find((x) => x.value === s)?.label ?? s;
 

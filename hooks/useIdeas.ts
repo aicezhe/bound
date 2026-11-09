@@ -3,9 +3,9 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { watchTable } from "@/lib/realtime";
-import { IDEA_STATUSES } from "@/lib/labels";
+import { IDEA_STATUSES, TAGS } from "@/lib/labels";
 import { useToast } from "@/hooks/useToast";
-import type { IdeaTag, IdeaWithVotes } from "@/types/db";
+import type { IdeaTag, IdeaTagRow, IdeaWithVotes } from "@/types/db";
 
 export function useIdeas(name: string | null) {
   const notify = useToast();
@@ -13,6 +13,9 @@ export function useIdeas(name: string | null) {
   const [myVotes, setMyVotes] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [tags, setTags] = useState<{ value: IdeaTag; label: string }[]>(TAGS);
+  // если таблицы видов ещё нет, остаётся стартовый набор и создавать новые нельзя
+  const [tagsEditable, setTagsEditable] = useState(false);
   const nameRef = useRef(name);
 
   useEffect(() => {
@@ -37,6 +40,20 @@ export function useIdeas(name: string | null) {
     [],
   );
 
+  const loadTags = useCallback(
+    () =>
+      supabase
+        .from("idea_tags")
+        .select("value,label,position")
+        .order("position")
+        .then(({ data, error }) => {
+          if (error || !data?.length) return;
+          setTags((data as IdeaTagRow[]).map((t) => ({ value: t.value, label: t.label })));
+          setTagsEditable(true);
+        }),
+    [],
+  );
+
   const loadMyVotes = useCallback(async () => {
     const me = nameRef.current;
     if (!me) return setMyVotes(new Set());
@@ -57,7 +74,7 @@ export function useIdeas(name: string | null) {
       void loadIdeas();
       void loadMyVotes();
     };
-    void loadIdeas().then(() => {
+    void Promise.all([loadIdeas(), loadTags()]).then(() => {
       if (cancelled) return;
       stops = [
         watchTable(
@@ -84,13 +101,45 @@ export function useIdeas(name: string | null) {
         ),
         // на представление подписаться нельзя: после событий голосов перечитываем ideas_with_votes
         watchTable("idea_votes", syncVotes, syncVotes),
+        watchTable(
+          "idea_tags",
+          () => void loadTags(),
+          () => void loadTags(),
+        ),
       ];
     });
     return () => {
       cancelled = true;
       stops.forEach((stop) => stop());
     };
-  }, [loadIdeas, loadMyVotes]);
+  }, [loadIdeas, loadMyVotes, loadTags]);
+
+  // возвращает value нового (или уже существующего) вида, либо null при ошибке
+  const addTag = useCallback(
+    async (label: string): Promise<IdeaTag | null> => {
+      const clean = label.trim();
+      if (!clean) return null;
+      const existing = tags.find((t) => t.label.toLowerCase() === clean.toLowerCase());
+      if (existing) return existing.value;
+      if (!name) {
+        notify("Сначала введи имя");
+        return null;
+      }
+      const value = clean.toLowerCase();
+      const position = Date.now() / 1000; // в конец списка
+      setTags((list) => [...list, { value, label: clean }]);
+      const { error } = await supabase
+        .from("idea_tags")
+        .insert({ value, label: clean, position, created_by: name });
+      if (error) {
+        setTags((list) => list.filter((t) => t.value !== value));
+        notify("Не удалось добавить вид идеи");
+        return null;
+      }
+      return value;
+    },
+    [name, tags, notify],
+  );
 
   const addIdea = useCallback(
     async (title: string, tag: IdeaTag, body: string): Promise<boolean> => {
@@ -203,5 +252,18 @@ export function useIdeas(name: string | null) {
     [name, notify],
   );
 
-  return { ideas, myVotes, loading, error, addIdea, cycleStatus, archive, toggleVote, sendToTasks };
+  return {
+    tags,
+    tagsEditable,
+    addTag,
+    ideas,
+    myVotes,
+    loading,
+    error,
+    addIdea,
+    cycleStatus,
+    archive,
+    toggleVote,
+    sendToTasks,
+  };
 }

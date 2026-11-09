@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { useIdeas } from "@/hooks/useIdeas";
 import { useName } from "@/hooks/useName";
-import { TAGS } from "@/lib/labels";
 import type { IdeaTag } from "@/types/db";
 import IdeaCard from "@/components/IdeaCard";
 import IdeaForm from "@/components/IdeaForm";
@@ -11,8 +10,20 @@ import { ErrorMessage, Loading } from "@/components/StateMessage";
 
 export default function IdeasView() {
   const { name } = useName();
-  const { ideas, myVotes, loading, error, addIdea, cycleStatus, archive, toggleVote, sendToTasks } =
-    useIdeas(name);
+  const {
+    tags,
+    tagsEditable,
+    addTag,
+    ideas,
+    myVotes,
+    loading,
+    error,
+    addIdea,
+    cycleStatus,
+    archive,
+    toggleVote,
+    sendToTasks,
+  } = useIdeas(name);
   const [filter, setFilter] = useState<IdeaTag | "all">("all");
 
   const visible = ideas.filter((i) => filter === "all" || i.tag === filter);
@@ -21,9 +32,9 @@ export default function IdeasView() {
     <main className="page">
       <h2 className="page-title">Идеи</h2>
       <p className="sub">Новые идеи, гипотезы фич, вопросы. Любую можно отправить в задания.</p>
-      <IdeaForm onAdd={addIdea} />
+      <IdeaForm tags={tags} onAddTag={tagsEditable ? addTag : undefined} onAdd={addIdea} />
       <div className="filters" role="group" aria-label="Фильтр по тегам">
-        {[{ value: "all" as const, label: "Все" }, ...TAGS].map((t) => (
+        {[{ value: "all" as const, label: "Все" }, ...tags].map((t) => (
           <button
             key={t.value}
             className={t.value === filter ? "chip on" : "chip"}
@@ -44,6 +55,7 @@ export default function IdeasView() {
           <IdeaCard
             key={idea.id}
             idea={idea}
+            tagLabel={tags.find((t) => t.value === idea.tag)?.label ?? idea.tag}
             voted={myVotes.has(idea.id)}
             onCycleStatus={() => void cycleStatus(idea)}
             onVote={() => void toggleVote(idea)}

@@ -1,7 +1,14 @@
 // Типы и enum строго по reference/bound_schema.sql
 export type TaskStatus = "backlog" | "doing" | "check" | "done";
 export type IdeaStatus = "new" | "testing" | "accepted" | "rejected";
-export type IdeaTag = "feature" | "product" | "match" | "growth" | "question";
+// после миграции idea_tags это value из таблицы idea_tags (стартовые: feature, product, match, growth, question)
+export type IdeaTag = string;
+
+export interface IdeaTagRow {
+  value: string;
+  label: string;
+  position: number;
+}
 export type Priority = 0 | 1 | 2;
 
 export interface Task {
@@ -49,6 +56,19 @@ export interface EssenceBlock {
   heading: string;
   body: string;
   updated_by: string | null;
+  created_by: string | null; // автор блока, null у стартовых блоков
   created_at: string;
   updated_at: string;
+}
+
+export type EssenceEntryKind = "comment" | "version";
+
+// запись обсуждения блока: комментарий или предложенная следующая версия текста
+export interface EssenceComment {
+  id: string;
+  block_id: string;
+  kind: EssenceEntryKind;
+  body: string;
+  author_name: string;
+  created_at: string;
 }

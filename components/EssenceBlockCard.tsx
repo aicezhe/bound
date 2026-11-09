@@ -1,38 +1,44 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import EssenceModal from "@/components/EssenceModal";
 import { formatWhen } from "@/lib/labels";
-import type { EssenceBlock } from "@/types/db";
+import type { EssenceBlock, EssenceComment, EssenceEntryKind } from "@/types/db";
 
 const DEBOUNCE_MS = 600;
 
 interface Props {
   block: EssenceBlock;
+  comments: EssenceComment[];
+  commentsEnabled: boolean;
   onSave: (id: string, body: string) => Promise<boolean>;
+  onAddComment: (blockId: string, kind: EssenceEntryKind, body: string) => Promise<boolean>;
 }
 
-export default function EssenceBlockCard({ block, onSave }: Props) {
+function signature(b: EssenceBlock): string {
+  const parts: string[] = [];
+  if (b.created_by) parts.push(`Автор ${b.created_by}`);
+  parts.push(
+    b.updated_by ? `правил ${b.updated_by}, ${formatWhen(b.updated_at)}` : "ещё не правили",
+  );
+  const text = parts.join(" · ");
+  return text.charAt(0).toUpperCase() + text.slice(1);
+}
+
+export default function EssenceBlockCard({
+  block,
+  comments,
+  commentsEnabled,
+  onSave,
+  onAddComment,
+}: Props) {
+  const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState(block.body);
   const [dirty, setDirty] = useState(false);
   const [seenBody, setSeenBody] = useState(block.body);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pending = useRef<string | null>(null);
   const onSaveRef = useRef(onSave);
-  const areaRef = useRef<HTMLTextAreaElement>(null);
-
-  // высота по содержимому: с учётом переноса длинных строк, меняется и при смене ширины
-  useLayoutEffect(() => {
-    const el = areaRef.current;
-    if (!el) return;
-    const fit = () => {
-      el.style.height = "auto";
-      el.style.height = `${el.scrollHeight}px`;
-    };
-    fit();
-    const ro = new ResizeObserver(fit);
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, [draft]);
 
   useEffect(() => {
     onSaveRef.current = onSave;
@@ -74,22 +80,28 @@ export default function EssenceBlockCard({ block, onSave }: Props) {
   }, [block.id]);
 
   return (
-    <div className="block">
-      <h3>{block.heading}</h3>
-      <textarea
-        ref={areaRef}
-        className="block-text"
-        value={draft}
-        maxLength={4000}
-        rows={1}
-        aria-label={block.heading}
-        onChange={(e) => change(e.target.value)}
-      />
-      <p className="block-meta">
-        {block.updated_by
-          ? `Правил ${block.updated_by}, ${formatWhen(block.updated_at)}`
-          : "Ещё не правили"}
-      </p>
-    </div>
+    <>
+      <button className="block block-card" aria-haspopup="dialog" onClick={() => setOpen(true)}>
+        <span className="block-head">
+          <h3>{block.heading}</h3>
+          <span className="block-count">
+            {commentsEnabled && comments.length > 0 ? `Записей: ${comments.length}` : ""}
+          </span>
+        </span>
+        <span className="block-preview">{draft}</span>
+        <span className="block-meta">{signature(block)}</span>
+      </button>
+      {open && (
+        <EssenceModal
+          block={block}
+          draft={draft}
+          onDraftChange={change}
+          entries={comments}
+          entriesEnabled={commentsEnabled}
+          onAddEntry={(kind, body) => onAddComment(block.id, kind, body)}
+          onClose={() => setOpen(false)}
+        />
+      )}
+    </>
   );
 }
