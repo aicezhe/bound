@@ -162,3 +162,15 @@ textarea { resize: vertical; min-height: 72px; }
   .who { margin-left: auto; }
   .page { padding: 28px 20px 60px; }
 }
+
+/* макеты */
+.mock-link { color: inherit; }
+.mock-link:hover { border-color: var(--muted); }
+.globe-page {
+  --accent: #c2394c; --pulse: #e04a5d; --text: #f1ebe8; --muted: #9a8d8f;
+  position: fixed; inset: 0; z-index: 40; overflow: hidden; color: var(--text);
+  background: radial-gradient(ellipse at 50% 45%, #1a0a0f 0%, #0b0507 55%, #050203 100%);
+}
+.globe-head { display: flex; align-items: center; gap: 10px; padding: 16px 18px 0; font-size: 18px; font-weight: 600; letter-spacing: -0.02em; }
+.globe-back { margin-left: auto; font-size: 14px; font-weight: 400; color: var(--muted); border-radius: 6px; padding: 4px 8px; }
+.globe-back:hover { color: var(--text); }

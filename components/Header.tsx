@@ -10,10 +10,12 @@ const TABS = [
   { href: "/", label: "Суть" },
   { href: "/ideas", label: "Идеи" },
   { href: "/tasks", label: "Задания" },
+  { href: "/mockups", label: "Макеты" },
 ];
 
 export default function Header() {
   const pathname = usePathname();
+  const isActive = (href: string) => (href === "/" ? pathname === "/" : pathname.startsWith(href));
   const { name, openChange } = useName();
 
   return (
@@ -27,8 +29,8 @@ export default function Header() {
           <Link
             key={t.href}
             href={t.href}
-            className={pathname === t.href ? "tab on" : "tab"}
-            aria-current={pathname === t.href ? "page" : undefined}
+            className={isActive(t.href) ? "tab on" : "tab"}
+            aria-current={isActive(t.href) ? "page" : undefined}
           >
             {t.label}
           </Link>

@@ -1,0 +1,12 @@
+.stage { width: 100%; max-width: 900px; margin: 0 auto; }
+.canvas {
+  display: block; width: 100%;
+  height: calc(100vh - 150px); height: calc(100dvh - 150px);
+  min-height: 320px; max-height: 860px;
+  touch-action: none; cursor: grab;
+}
+.drag { cursor: grabbing; }
+.pick { cursor: pointer; }
+.cap { text-align: center; height: 70px; padding: 0 16px; }
+.name { font-size: 20px; font-weight: 600; letter-spacing: -0.02em; color: #f1ebe8; min-height: 30px; }
+.sub { font-size: 13px; color: #9a8d8f; margin-top: 2px; }

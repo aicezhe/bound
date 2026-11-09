@@ -36,6 +36,10 @@ Next.js (App Router), все данные клиентские: браузер �
 
 Виды лежат в таблице `idea_tags` (`ideas.tag` ссылается на `idea_tags.value`). `useIdeas` грузит их и слушает realtime. В выпадающем списке формы пункт «+ Добавить вид» создаёт свой вид (`Select`, свойство `onCreate`). Без миграции остаётся стартовый набор из `lib/labels.ts`, создавать новые нельзя.
 
+## Макеты
+
+Раздел «Макеты» (`/mockups`) это список интерактивных макетов, пока один: «Шар-сфера» (`/mockups/globe`). Шар нарисован на чистом canvas 2D в `components/mockups/Globe.tsx`; вся математика и анимация живут внутри одного эффекта, который снимает кадр, слушатели и `matchMedia` в cleanup. Страница всегда тёмная (свои цвета на `.globe-page`, `prefers-color-scheme` не используется). Данные демонстрационные и лежат в `lib/mockups/globeDemo.ts` (`REGIONS`: название и число людей, `LINKS`: связи между островами). Чтобы подключить реальные данные, замени эти константы данными из Supabase, например передай их в `Globe` пропсами и пересчитывай сцену при их изменении. Клик по острову вызывает `onSelect(index, name)`, по нему позже можно открыть страницу тредов или людей.
+
 ## Файлы
 
 **Конфиг**: `package.json` (скрипты, зависимости), `tsconfig.json`, `next.config.ts`, `eslint.config.mjs`, `.gitignore` (`.env*.local` не коммитится), `.env.example` (имена переменных).
@@ -43,6 +47,8 @@ Next.js (App Router), все данные клиентские: браузер �
 **app/**: `layout.tsx` (html, шрифт, `Providers`), `icon.svg` (фавикон), `globals.css` (палитра и все стили), `page.tsx` (Суть), `ideas/page.tsx`, `tasks/page.tsx` (тонкие обёртки над `*View`).
 
 **lib/**: `supabase.ts` (единственный клиент и флаг конфигурации), `realtime.ts` (подписка на таблицу), `position.ts` (расчёт `position`), `labels.ts` (подписи enum, формат даты), `brand.ts` (шрифт и название, меняются тут).
+
+**app/mockups/**: `page.tsx` (список макетов), `globe/page.tsx` (тёмная страница шара с `BoundIcon` в шапке). **lib/mockups/globeDemo.ts**: демо-данные шара. **components/mockups/**: `Globe.tsx` и `Globe.module.css` (шар на canvas).
 
 **types/db.ts**: типы таблиц и enum по схеме.
 
